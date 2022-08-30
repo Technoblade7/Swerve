@@ -21,7 +21,7 @@ public class SwerveModule {
 
         driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, kTalonTimeout);
         driveMotor.setInverted(driveInverted);
-        driveMotor.setNeutralMode(NeutralMode.Brake);   
+        driveMotor.setNeutralMode(NeutralMode.Brake);
         driveMotor.selectProfileSlot(1, 0);
 
         angleMotor.configSelectedFeedbackSensor(FeedbackDevice.Analog, 0, kTalonTimeout);
@@ -54,7 +54,7 @@ public class SwerveModule {
     public void set(double speed, Rotation2d angle) {
         driveMotor.set(ControlMode.PercentOutput, speed);
 
-        int error = toTicks(toRoation2d((int) angleMotor.getSelectedSensorPosition()).minus(angle)) - offset;
+        int error = toTicks(angle.minus(toRoation2d((int) angleMotor.getSelectedSensorPosition()))) + offset;
         angleMotor.set(ControlMode.MotionMagic, angleMotor.getSelectedSensorPosition() + error);
     }
 }

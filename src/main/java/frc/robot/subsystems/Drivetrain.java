@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.SwerveModule;
@@ -13,7 +15,7 @@ import static frc.robot.Constants.*;
 import com.kauailabs.navx.frc.AHRS;
 
 public class Drivetrain extends SubsystemBase {
-        private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+        private final SwerveDriveKinematics mKinematics = new SwerveDriveKinematics(
                         // Front left
                         new Translation2d(kDrivetrainTrackwidthMeters / 2.0, kDrivetrainWheelbaseMeters / 2.0),
                         // Front right
@@ -22,6 +24,9 @@ public class Drivetrain extends SubsystemBase {
                         new Translation2d(-kDrivetrainTrackwidthMeters / 2.0, kDrivetrainWheelbaseMeters / 2.0),
                         // Rear right
                         new Translation2d(-kDrivetrainTrackwidthMeters / 2.0, -kDrivetrainWheelbaseMeters / 2.0));
+
+        private final SwerveDriveOdometry mOdometry = new SwerveDriveOdometry(mKinematics, new Rotation2d(),
+                        new Pose2d());
 
         private final AHRS mNavx = new AHRS();
 
@@ -79,13 +84,29 @@ public class Drivetrain extends SubsystemBase {
                 return Rotation2d.fromDegrees(mNavx.getYaw());
         }
 
+        public SwerveDriveKinematics getKinematics() {
+                return mKinematics;
+        }
+
+        public void updateOdometry() {
+                mOdometry.update(getNavxRotation(), mKinematics.toSwerveModuleStates(mChassisSpeeds));
+        }
+
+        public Pose2d getPose() {
+                return mOdometry.getPoseMeters();
+        }
+
         public void drive(ChassisSpeeds chassisSpeeds) {
                 mChassisSpeeds = chassisSpeeds;
         }
 
+        public void driveAutonomous(SwerveModuleState[] states) {
+                mChassisSpeeds = mKinematics.toChassisSpeeds(states);
+        }
+
         @Override
         public void periodic() {
-                SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(mChassisSpeeds);
+                SwerveModuleState[] states = mKinematics.toSwerveModuleStates(mChassisSpeeds);
                 SwerveDriveKinematics.desaturateWheelSpeeds(states, kMaxVelocityMetersPerSecond);
 
                 mFl.set(states[0].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
