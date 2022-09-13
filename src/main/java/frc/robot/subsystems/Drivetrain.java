@@ -30,50 +30,50 @@ public class Drivetrain extends SubsystemBase {
 
         private final AHRS mNavx = new AHRS();
 
-        private final SwerveModule mFl;
-        private final SwerveModule mFr;
-        private final SwerveModule mRl;
-        private final SwerveModule mRr;
+        private final SwerveModule mFrontLeft;
+        private final SwerveModule mFrontRight;
+        private final SwerveModule mRearLeft;
+        private final SwerveModule mRearRight;
 
         private ChassisSpeeds mChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
         public Drivetrain() {
 
-                mFl = new SwerveModule(
+                mFrontLeft = new SwerveModule(
                                 kFrontLeftModuleDriveMotorId,
                                 kFrontLeftModuleSteerMotorId,
                                 kOffsets[0],
                                 kFrontLeftDriveInverted,
                                 kFrontLeftAngleInverted,
                                 kFrontLeftAngleSensorPhase,
-                                kFrontLeftAnglePIDF);
+                                kFrontLeftMotionMagicConfigs);
 
-                mFr = new SwerveModule(
+                mFrontRight = new SwerveModule(
                                 kFrontRightModuleDriveMotorId,
                                 kFrontRightModuleSteerMotorId,
                                 kOffsets[1],
                                 kFrontRightDriveInverted,
                                 kFrontRightAngleInverted,
                                 kFrontRightAngleSensorPhase,
-                                kFrontRightAnglePIDF);
+                                kFrontRightMotionMagicConfigs);
 
-                mRl = new SwerveModule(
+                mRearLeft = new SwerveModule(
                                 kRearLeftModuleDriveMotorId,
                                 kRearLeftModuleSteerMotorId,
                                 kOffsets[2],
                                 kRearLeftDriveInverted,
                                 kRearLeftAngleInverted,
                                 kRearLeftAngleSensorPhase,
-                                kRearLeftAnglePIDF);
+                                kRearLeftMotionMagicConfigs);
 
-                mRr = new SwerveModule(
+                mRearRight = new SwerveModule(
                                 kRearRightModuleDriveMotorId,
                                 kRearRightModuleSteerMotorId,
                                 kOffsets[3],
                                 kRearRightDriveInverted,
                                 kRearRightAngleInverted,
                                 kRearRightAngleSensorPhase,
-                                kRearRightAnglePIDF);
+                                kRearRightMotionMagicConfigs);
         }
 
         public void zeroNavx() {
@@ -100,22 +100,23 @@ public class Drivetrain extends SubsystemBase {
                 mChassisSpeeds = chassisSpeeds;
         }
 
-        public void driveAutonomous(SwerveModuleState[] states) {
+        public void setStates(SwerveModuleState[] states) {
                 mChassisSpeeds = mKinematics.toChassisSpeeds(states);
         }
 
         @Override
         public void periodic() {
                 SwerveModuleState[] states = mKinematics.toSwerveModuleStates(mChassisSpeeds);
+
                 SwerveDriveKinematics.desaturateWheelSpeeds(states, kMaxVelocityMetersPerSecond);
 
-                mFl.set(states[0].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
+                mFrontLeft.set(states[0].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
                                 states[0].angle);
-                mFr.set(states[1].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
+                mFrontRight.set(states[1].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
                                 states[1].angle);
-                mRl.set(states[2].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
+                mRearLeft.set(states[2].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
                                 states[2].angle);
-                mRr.set(states[3].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
+                mRearRight.set(states[3].speedMetersPerSecond / kMaxVelocityMetersPerSecond,
                                 states[3].angle);
         }
 }
